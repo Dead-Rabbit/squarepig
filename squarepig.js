@@ -640,7 +640,23 @@ pig.Sprite = function(x, y, image, frameW, frameH) {
 					this.frame = this.animation.length-1;
 			}
 		}
-	} ;
+	};
+
+	this.lookAtPos = function(x, y) {
+		var angle = 0
+		if (x == 0)
+		{
+			angle = y > 0 ? (0.5 * Math.PI) : (-0.5 * Math.PI)
+		} else {
+			var tanV = Math.atan(y / x)
+			if (x < 0) {
+				angle = tanV + Math.PI 
+			} else {
+				angle = tanV
+			}
+		}
+		this.angle = angle
+	}
 } ;
 
 pig.Tilemap = function(x, y, image, tw, th, gw, gh) {

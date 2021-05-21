@@ -45,23 +45,11 @@
 					if (ifChange)
 						this.changeAngle()
 
-					this.graphic.place([this.x, this.y]) ;
+					this.graphic.place([this.x, this.y]);
 				};
 
 				this.changeAngle = function() {
-					var angle = 0
-					if (this.dx == 0)
-					{
-						angle = this.dy > 0 ? (0.5 * Math.PI) : (-0.5 * Math.PI)
-					} else {
-						var tanV = Math.atan(this.dy / this.dx)
-						if (this.dx < 0) {
-							angle = tanV + Math.PI 
-						} else {
-							angle = tanV
-						}
-					}
-					this.sprite.angle = angle
+					this.sprite.lookAtPos(this.dx, this.dy)
 				}
 			}
 

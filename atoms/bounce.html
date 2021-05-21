@@ -9,41 +9,71 @@
 
 				this.x = x ;
 				this.y = y ;
-				this.dx = 200 ;
-				this.dy = 100 ;
-				this.image = new pig.Image(x, y, "graphics/ball.png") ;
-				this.graphic = this.image ;
+				this.dx = 200;
+				this.dy = 200;
+				this.sprite = new pig.Sprite(x, y, "graphics/arrow/32/red.png", 32, 32);
+				this.graphic = this.sprite;
 
 				this.update = function(time) {
+
 					this.x += this.dx * time ;
 					this.y += this.dy * time ;
 
-					if(this.x + this.image.width > pig.canvas.width) {
-						this.x = pig.canvas.width - this.image.width ;
-						this.dx = -this.dx ;
+					var ifChange = false
+					if(this.x + this.sprite.frameWidth > pig.canvas.width) {
+						this.x = pig.canvas.width - this.sprite.frameWidth ;
+						this.dx = -this.dx;
+						ifChange = true
 					}
 					else if(this.x < 0) {
 						this.x = 0 ;
-						this.dx = -this.dx ;
+						this.dx = -this.dx;
+						ifChange = true
 					}
 
-					if(this.y + this.image.height > pig.canvas.height) {
-						this.y = pig.canvas.height - this.image.height ;
-						this.dy = -this.dy ;
+					if(this.y + this.sprite.frameHeight > pig.canvas.height) {
+						this.y = pig.canvas.height - this.sprite.frameHeight ;
+						this.dy = -this.dy;
+						ifChange = true
 					}
 					else if(this.y < 0) {
 						this.y = 0 ;
-						this.dy = -this.dy ;
+						this.dy = -this.dy;
+						ifChange = true
 					}
+
+					if (ifChange)
+						this.changeAngle()
+
 					this.graphic.place([this.x, this.y]) ;
-				} ;
+				};
+
+				this.changeAngle = function() {
+					var angle = 0
+					if (this.dx == 0)
+					{
+						angle = this.dy > 0 ? (0.5 * Math.PI) : (-0.5 * Math.PI)
+					} else {
+						var tanV = Math.atan(this.dy / this.dx)
+						if (this.dx < 0) {
+							angle = tanV + Math.PI 
+						} else {
+							angle = tanV
+						}
+					}
+					this.sprite.angle = angle
+				}
 			}
 
+			var ball;
 			function main() {
 				pig.init('pig-canvas') ;
-				pig.world.add(new Ball(0, 0)) ;
-				pig.run() ;
+				ball = new Ball(200, 200)
+				ball.changeAngle()
+				pig.world.add(ball);
+				pig.run();
 			}
+
 		</script>
 	</head>
 	<body onload = "main();">

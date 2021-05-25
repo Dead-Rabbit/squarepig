@@ -130,6 +130,11 @@ pig.setBackground = function(url) {
 	pig.context.clearRect(0, 0, pig.canvas.width, pig.canvas.height);
 };
 
+pig.setBackgroundColor = function(color) {
+	pig.context.save()
+	pig.context.restore()
+}
+
 pig.setWorld = function(world) {
 	pig._nextWorld = world;
 };

@@ -3,10 +3,15 @@
 	<head>
 		<title>squarepig demo - Bounce</title>
 
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
 		<script type = "text/javascript" src = "src/squarepig.js"></script>
 		<script type = "text/javascript" src = "src/perlin.js"></script>
 
 		<script>
+			noise.seed(Math.random());
+
+			var threshold = 0.6
 
 			function main() {
 				pig.init('pig-canvas');
@@ -15,38 +20,46 @@
 				var canvas = pig.canvas
 				var ctx = pig.context
 
-				var image = generateImage(canvas, ctx)
-
+				var image = createNoise(canvas, ctx)
 				ctx.putImageData(image, 0, 0);
 			}
 
-			function generateImage(canvas, ctx) {
-				noise.seed(Math.random());
-
+			function createNoise(canvas, ctx) {
 				var image = ctx.createImageData(canvas.width, canvas.height);
 				var data = image.data;
 
-				var _min = 0, _max = 0
-
 				for (var x = 0; x < canvas.width; x++) {
 				    for (var y = 0; y < canvas.height; y++) {
-				        var value = noise.perlin2(x / 50, y / 50) / 2 + 0.5;
+				        var value = noise.perlin2(x / 300, y / 300) / 2 + 0.5;
 
-				        if (value > _max)
-				        	_max = value
-				        if (value < _min)
-				        	_min = value
-
-				        value *= 255;
+				        var color = [0, 0, 0, 1]
+				        if (value <= threshold) {
+				        	color = [0, 255, 0, 255]
+				        } else {
+				        	color = [value * 255, value * 255, value * 255, 255]
+				        }
 
 				        var cell = (x + y * canvas.width) * 4;
-				        data[cell] = data[cell + 1] = data[cell + 2] = value;
-				        // data[cell] += Math.max(0, (25 - value) * 8);
-				        data[cell + 3] = 255; // alpha.
+				        // data[cell] = data[cell + 1] = data[cell + 2] = value;
+				        // // data[cell] += Math.max(0, (25 - value) * 8);
+				        // data[cell + 3] = 255; // alpha.
+				        data[cell] = color[0]
+				        data[cell + 1] = color[1]
+				        data[cell + 2] = color[2]
+				        data[cell + 3] = color[3]
 				    }
 				}
-				console.log("Max is " + _max + " Min is " + _min)
 				return image
+			}
+
+			function changeOne() {
+				threshold = range1.value / 100
+				console.log(threshold)
+				var canvas = pig.canvas
+				var ctx = pig.context
+
+				var image = createNoise(canvas, ctx)
+				ctx.putImageData(image, 0, 0);
 			}
 
 		</script>
@@ -55,6 +68,10 @@
 		<canvas id = "pig-canvas" style = "width: 800px; height: 500px">
 			<p>Hang on! Your browser doesn't support the &lt;canvas&gt; tag! You should get on that.</p>
 		</canvas>
+		<div id="control-panel">
+			<span>调整阈值1</span><input id="range1" type="range" min="0" max="100" value="50" oninput="changeOne()">
+		</div>
+		
 	</body>
 </html>
 

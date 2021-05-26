@@ -3,34 +3,50 @@
 	<head>
 		<title>squarepig demo - Bounce</title>
 
+		<script type = "text/javascript" src = "src/squarepig.js"></script>
+		<script type = "text/javascript" src = "src/perlin.js"></script>
+
 		<script>
-			function Ball(x, y) {
-				pig.Entity.apply(this) ;
 
-				this.x = x ;
-				this.y = y ;
-				this.dx = 120;
-				this.dy = 210;
-				this.sprite = new pig.Sprite(x, y, "graphics/arrow/32/red.png", 32, 32);
-				this.graphic = this.sprite;
+			function main() {
+				pig.init('pig-canvas');
 
-				this.update = function(time) {
-					// this.graphic.place([this.x, this.y]);
-					this.sprite.lookAtPos(10 - this.x, 130 - this.y)
-				};
+				// pig.run();
+				var canvas = pig.canvas
+				var ctx = pig.context
 
-				this.changeAngle = function() {
-					this.sprite.lookAtPos(this.dx, this.dy)
-				}
+				var image = generateImage(canvas, ctx)
+
+				ctx.putImageData(image, 0, 0);
 			}
 
-			var ball;
-			function main() {
-				pig.init('pig-canvas') ;
-				ball = new Ball(200, 200)
-				ball.changeAngle()
-				pig.world.add(ball);
-				pig.run();
+			function generateImage(canvas, ctx) {
+				noise.seed(Math.random());
+
+				var image = ctx.createImageData(canvas.width, canvas.height);
+				var data = image.data;
+
+				var _min = 0, _max = 0
+
+				for (var x = 0; x < canvas.width; x++) {
+				    for (var y = 0; y < canvas.height; y++) {
+				        var value = noise.perlin2(x / 50, y / 50) / 2 + 0.5;
+
+				        if (value > _max)
+				        	_max = value
+				        if (value < _min)
+				        	_min = value
+
+				        value *= 255;
+
+				        var cell = (x + y * canvas.width) * 4;
+				        data[cell] = data[cell + 1] = data[cell + 2] = value;
+				        // data[cell] += Math.max(0, (25 - value) * 8);
+				        data[cell + 3] = 255; // alpha.
+				    }
+				}
+				console.log("Max is " + _max + " Min is " + _min)
+				return image
 			}
 
 		</script>
@@ -39,9 +55,6 @@
 		<canvas id = "pig-canvas" style = "width: 800px; height: 500px">
 			<p>Hang on! Your browser doesn't support the &lt;canvas&gt; tag! You should get on that.</p>
 		</canvas>
-
-		<p>Made with <a href = "https://github.com/aeonofdiscord/squarepig">squarepig</a>.</p>
-		<script type = "text/javascript" src = "../squarepig.js"></script>
 	</body>
 </html>
 

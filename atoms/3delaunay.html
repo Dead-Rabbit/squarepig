@@ -21,24 +21,77 @@
 					this.x = Math.random() * (right_bottom[0] - left_top[0]) + left_top[0]
 					this.y = Math.random() * (right_bottom[1] - left_top[1]) + left_top[1]
 
-					this.graphic = new pig.PointDraw(this.x, this.y, 2, "red");
+					this.graphic = new pig.PointGraphic(this.x, this.y, 2, "black");
+					return this.x, this.y
 				}
+			}
+
+			function Triangle(point1, point2, point3) {
+				pig.Entity.apply(this);
+
+				this.point1 = point1
+				this.point2 = point2
+				this.point3 = point3
+
+				this.graphic = new pig.TriangleGraphic(this.point1, this.point2, this.point3, 1, "red")
 			}
 
 			function DelaunayWorld() {
 				this.points = []
 
 				// 生成位置的area
-				this.left_top = [100, 100]
-				this.right_bottom = [600, 500]
+				this.left_top = [300, 100]
+				this.right_bottom = [500, 500]
+
+				// 缓存列表
+				this.tempTriangles = []
+				this.edgeBuffer = []
 
 				this.GeneratePoints = function() {
-					for (var i = 0; i < 3; i++) {
+					for (var i = 0; i < 10; i++) {
 						var point = new Point()
 						point.GeneratePos(this.left_top, this.right_bottom)
 						this.points[i] = point
 						pig.world.add(point)
 					}
+
+					this.FindBigTriangle()
+				}
+
+				// 计算“超级大三角”
+				this.FindBigTriangle = function() {
+					var left = this.right_bottom[0]
+					var right = this.left_top[0]
+					var bottom = this.left_top[1]
+					var top = this.right_bottom[1]
+					for (var i = 0; i < this.points.length; i++) {
+						var x = this.points[i].x
+						var y = this.points[i].y
+
+						if (x < left) {
+							left = x
+						}
+						if (x > right) {
+							right = x
+						}
+						if (y > bottom) {
+							bottom = y
+						}
+						if (y < top) {
+							top = y
+						}
+					}
+
+					left = left - 10
+					right = right + 10
+					top = top - 10
+					bottom = bottom + 10
+
+					var height = bottom - top
+					var width = right - left
+
+					var triangle = new Triangle([right - width / 2, top - width / 2], [left - height, bottom], [right + height, bottom])
+					pig.world.add(triangle)
 				}
 			}
 			
@@ -53,7 +106,7 @@
 		</script>
 	</head>
 	<body onload = "main();">
-		<canvas id = "pig-canvas" style = "width: 600px; height: 500px">
+		<canvas id = "pig-canvas" style = "width: 900px; height: 500px">
 			<p>Hang on! Your browser doesn't support the &lt;canvas&gt; tag! You should get on that.</p>
 		</canvas>
 	</body>

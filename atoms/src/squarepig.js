@@ -825,7 +825,7 @@ pig.version = 0.2;
 
 // --------------------- 自己拓展的组件 By Wangzixiao --------------------- //
 // 绘制点
-pig.PointDraw = function(x, y, radius, color) {
+pig.PointGraphic = function(x, y, radius, color) {
 	pig.Graphic.apply(this);
 
 	this.x = x
@@ -841,6 +841,61 @@ pig.PointDraw = function(x, y, radius, color) {
         pig.context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
         pig.context.fill();
         pig.context.closePath();
+		pig.context.restore();
+	};
+
+	this.update = function(dtime){} ;
+}
+
+// 绘制线
+pig.LineGraphic = function(fromx, fromy, tox, toy, width, color) {
+	pig.Graphic.apply(this);
+	this.fromx = fromx
+	this.fromy = fromy
+	this.tox = tox
+	this.toy = toy
+
+	this.width = width
+	this.color = color
+
+	this.draw = function() {
+		pig.context.save();
+		pig.context.beginPath();
+
+        pig.context.strokeStyle  = this.color;
+        pig.context.lineWidth = this.width
+        pig.context.moveTo(this.fromx, this.fromy)
+        pig.context.lineTo(this.tox, this.toy)
+
+        pig.context.closePath();
+       	pig.context.stroke();
+		pig.context.restore();
+	};
+
+	this.update = function(dtime){} ;
+}
+
+// 绘制三角形
+pig.TriangleGraphic = function(point1, point2, point3, width, color) {
+	pig.Graphic.apply(this);
+	this.width = width
+	this.color = color
+
+	this.draw = function() {
+		pig.context.save();
+		pig.context.beginPath();
+
+        pig.context.strokeStyle  = this.color;
+        pig.context.lineWidth = this.width
+
+        pig.context.moveTo(point1[0], point1[1])
+        pig.context.lineTo(point2[0], point2[1])
+        pig.context.lineTo(point3[0], point3[1])
+        pig.context.lineTo(point1[0], point1[1])
+
+        pig.context.closePath();
+       	pig.context.stroke();
+
 		pig.context.restore();
 	};
 

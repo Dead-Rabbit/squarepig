@@ -39,16 +39,18 @@
 			function DelaunayWorld() {
 				this.points = []
 
-				// 生成位置的area
-				this.left_top = [300, 100]
+				// 生成点
+				this.left_top = [300, 200]
 				this.right_bottom = [500, 500]
+				this.num = 5
 
 				// 缓存列表
 				this.tempTriangles = []
 				this.edgeBuffer = []
 
+				// 生成随机点
 				this.GeneratePoints = function() {
-					for (var i = 0; i < 10; i++) {
+					for (var i = 0; i < this.num; i++) {
 						var point = new Point()
 						point.GeneratePos(this.left_top, this.right_bottom)
 						this.points[i] = point
@@ -90,8 +92,10 @@
 					var height = bottom - top
 					var width = right - left
 
-					var triangle = new Triangle([right - width / 2, top - width / 2], [left - height, bottom], [right + height, bottom])
-					pig.world.add(triangle)
+					var superTriangle = new Triangle([right - width / 2, top - width / 2], [left - height, bottom], [right + height, bottom])
+					pig.world.add(superTriangle)
+
+					this.tempTriangles.push(superTriangle)
 				}
 			}
 			

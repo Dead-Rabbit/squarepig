@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>squarepig demo - Bounce</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+		<script type = "text/javascript" src = "src/squarepig.js"></script>
+		<script type = "text/javascript" src = "src/perlin.js"></script>
+
+		<script>
+
+			function Point() {
+				pig.Entity.apply(this);
+
+				this.x = 0
+				this.y = 0
+
+				// 生成随机位置
+				this.GeneratePos = function(left_top, right_bottom) {
+					this.x = Math.random() * (right_bottom[0] - left_top[0]) + left_top[0]
+					this.y = Math.random() * (right_bottom[1] - left_top[1]) + left_top[1]
+
+					this.graphic = new pig.PointDraw(this.x, this.y, 2, "red");
+				}
+			}
+
+			function DelaunayWorld() {
+				this.points = []
+
+				// 生成位置的area
+				this.left_top = [100, 100]
+				this.right_bottom = [600, 500]
+
+				this.GeneratePoints = function() {
+					for (var i = 0; i < 10; i++) {
+						var point = new Point()
+						point.GeneratePos(this.left_top, this.right_bottom)
+						this.points[i] = point
+						pig.world.add(point)
+					}
+				}
+			}
+			
+			function main() {
+				pig.init('pig-canvas');
+
+				var delaunayWorld = new DelaunayWorld()
+				delaunayWorld.GeneratePoints()
+
+				pig.run();
+			}
+		</script>
+	</head>
+	<body onload = "main();">
+		<canvas id = "pig-canvas" style = "width: 600px; height: 500px">
+			<p>Hang on! Your browser doesn't support the &lt;canvas&gt; tag! You should get on that.</p>
+		</canvas>
+	</body>
+</html>
+

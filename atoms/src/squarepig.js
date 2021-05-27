@@ -821,3 +821,28 @@ pig.key = {
 	SPACE: 32
 };
 pig.version = 0.2;
+
+
+// --------------------- 自己拓展的组件 By Wangzixiao --------------------- //
+// 绘制点
+pig.PointDraw = function(x, y, radius, color) {
+	pig.Graphic.apply(this);
+
+	this.x = x
+	this.y = y
+
+	this.radius = radius
+	this.dotColor = color
+
+	this.draw = function() {
+		pig.context.save();
+		pig.context.beginPath();
+        pig.context.fillStyle = this.dotColor;
+        pig.context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+        pig.context.fill();
+        pig.context.closePath();
+		pig.context.restore();
+	};
+
+	this.update = function(dtime){} ;
+}

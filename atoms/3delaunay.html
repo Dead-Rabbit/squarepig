@@ -10,19 +10,27 @@
 
 		<script>
 
-			function Point() {
+			function Point(x, y, radius, color) {
 				pig.Entity.apply(this);
 
-				this.x = 0
-				this.y = 0
+				this.x = x
+				this.y = y
+				this.radius = radius
+				this.color = color
 
-				// 生成随机位置
-				this.GeneratePos = function(left_top, right_bottom) {
-					this.x = Math.random() * (right_bottom[0] - left_top[0]) + left_top[0]
-					this.y = Math.random() * (right_bottom[1] - left_top[1]) + left_top[1]
+				this.graphic = new pig.PointGraphic(x, y, this.radius, this.color);
 
-					this.graphic = new pig.PointGraphic(this.x, this.y, 2, "black");
-					return this.x, this.y
+				this.added = function() {
+					if (this.radius == 0) {
+						this.radius = 2
+					}
+					if (!this.color) {
+						this.color = "black"
+					}
+				}
+
+				this.GetPos = function() {
+					return [this.x, this.y]
 				}
 			}
 
@@ -33,35 +41,243 @@
 				this.point2 = point2
 				this.point3 = point3
 
-				this.graphic = new pig.TriangleGraphic(this.point1, this.point2, this.point3, 1, "red")
+				this.graphic = new pig.Graphiclist()
+
+				this.color = "yellow"
+				this.circumPoint = null
+				this.circumRadius = 0
+
+				this.added = function() {
+					this.Init()
+				}
+
+				this.Init = function() {
+					// 三角形绘制
+					this.graphic.push(new pig.TriangleGraphic(this.point1.GetPos(), this.point2.GetPos(), this.point3.GetPos(), 1, "red"))
+
+					var pos = this.GetCircumCenter(this.point1, this.point2, this.point3)
+					var dx = pos[0] - this.point1.x
+					var dy = pos[1] - this.point1.y
+					this.circumRadius = Math.sqrt(dx * dx + dy * dy)
+					
+					// 中心点绘制
+					this.circumPoint = new Point(pos[0], pos[1], 3, this.color);
+					this.graphic.push(this.circumPoint)
+
+					// 圆圈绘制
+					var circum = new pig.CircumGraphic(pos[0], pos[1], this.circumRadius, this.color)
+					this.graphic.push(circum)
+				}
+
+				this.changeColor = function(color) {
+					this.color = color
+					var graphics = this.graphic.graphics
+					for (var i = 0; i < graphics.length; i++) {
+						var graphic = graphics[i]
+						graphic.color = color;
+					}
+				}
+
+				this.ChangeShowCircum = function(ifShow) {
+					this.graphic = new pig.Graphiclist()
+					this.graphic.push(new pig.TriangleGraphic(this.point1.GetPos(), this.point2.GetPos(), this.point3.GetPos(), 1, "red"))
+
+					if (ifShow) {
+						this.Init()
+					}
+				}
+
+				// 计算三角形外接圆的圆心
+				this.GetCircumCenter = function(p0, p1, p2) 
+				{
+					var a1 = p1.x - p0.x
+					var b1 = p1.y - p0.y
+					var c1 = (a1 * a1 + b1 * b1) / 2;
+
+					var a2 = p2.x - p0.x
+					var b2 = p2.y - p0.y
+					var c2 = (a2 * a2 + b2 * b2) / 2;
+
+					var d = a1 * b2 - a2 * b1;
+
+					var x = p0.x + (c1 * b2 - c2 * b1) / d;
+					var y = p0.y + (a1 * c2  - a2 * c1) / d;
+
+					return [x, y]
+				}
+
+				// 检查点是否在三角形外接圆内
+				this.CheckIfPointInCircum = function(point) {
+					var dx = point.x - this.circumPoint.x
+					var dy = point.y - this.circumPoint.y
+					var dis = Math.sqrt(dx * dx + dy * dy)
+					console.log(dis + " of " + this.circumRadius)
+					return dis <= this.circumRadius
+				}
+			}
+
+			function EdgeBuffer() {
+				// line 的表达 [p1.x, p1.y, p2.x, p2.y]
+				this.lines = []
+
+				this.addLine = function(point1, point2) {
+					// edge buffer 新增去重
+					for (var i = 0; i < this.lines.length; i++) {
+						var line = this.lines[i]
+						if ((line[0] == point1.x && line[1] == point1.y && line[2] == point2.x && line[3] == point2.y) ||
+							(line[0] == point2.x && line[1] == point2.y && line[2] == point1.x && line[3] == point1.y)) {
+							return
+						}
+					}
+
+					var newLine = [point1.x, point1.y, point2.x, point2.y]
+					this.lines.push(newLine)
+				}
 			}
 
 			function DelaunayWorld() {
+				pig.Entity.apply(this);
+
 				this.points = []
 
 				// 生成点
 				this.left_top = [300, 100]
 				this.right_bottom = [500, 400]
-				this.num = 5
+				this.num = 3
 
 				// 缓存列表
+				this.triangles = []
 				this.tempTriangles = []
-				this.edgeBuffer = []
+
+				this.added = function() {
+					this.GeneratePoints()
+				}
 
 				// 生成随机点
 				this.GeneratePoints = function() {
-					for (var i = 0; i < this.num; i++) {
-						var point = new Point()
-						point.GeneratePos(this.left_top, this.right_bottom)
-						pig.world.add(point)
-						
-						this.points[i] = point
+					// for (var i = 0; i < this.num; i++) {
+					// 	var x = Math.random() * (this.right_bottom[0] - this.left_top[0]) + this.left_top[0]
+					// 	var y = Math.random() * (this.right_bottom[1] - this.left_top[1]) + this.left_top[1]
+
+					// 	var point = new Point(x, y, 2, "black")
+					// 	this.points[i] = point
+
+					// 	console.log(x + " " + y)
+
+					// 	pig.world.add(point)
+					// }
+
+					// 测试用 points
+					var point1 = new Point(315.0893988718047, 181.57692901501983, 2, "black")
+					var point2 = new Point(394.98019659642006, 385.5617694044639, 2, "black")
+					// var point2 = new Point(400.98019659642006, 385.5617694044639, 2, "black")
+					var point3 = new Point(338.7576039540897, 319.15401721386377, 2, "black")
+					this.points.push(point1)
+					this.points.push(point2)
+					this.points.push(point3)
+					pig.world.add(point1)
+					pig.world.add(point2)
+					pig.world.add(point3)
+
+					// 排序 points
+					for (var i = this.points.length; i >= 0 ; i--){
+						for (var j = 0; j < i - 1; j++) {
+							if (this.points[j].x > this.points[j + 1].x) {
+								var temp = this.points[j + 1]
+								this.points[j + 1] = this.points[j]
+								this.points[j] = temp
+							}
+						}
 					}
 
-					this.FindBigTriangle()
+					// 创建 “超级大三角”
+					var superTriangle = this.FindBigTriangle()
+
+					this.tempTriangles.push(superTriangle)
+					this.triangles.push(superTriangle)
+
+					// 计算 劳德莱
+					// this.CalculateDelaunay()
 				}
 
-				// 计算“超级大三角”
+				this.curStep = 0
+				this.keyDown = function(key) {
+					if (key == 32) {
+						this.CalculateDelaunayByStep(this.curStep)
+						this.curStep += 1
+					}
+				}
+
+				this.CalculateDelaunay = function() {
+					// 测试一次
+					for (var i = 0; i < this.points.length; i++) {
+						this.CalculateDelaunayByStep(i)
+					}
+
+// 					// 将triangles与temp triangles进行合并
+// 					for (var i = this.tempTriangles.length - 1; i >= 0; i--) {
+// 						this.triangles.push(this.tempTriangles[i])
+// 						this.tempTriangles.pop()
+// 					}
+
+// 　　　　				// 除去与超级三角形有关的三角形
+
+				}
+
+				this.CalculateDelaunayByStep = function(i) {
+					var point = this.points[i]
+					var edgeBuffer = new EdgeBuffer()
+
+					if (!point) {
+						return
+					}
+
+					for (var j = 0; j < this.tempTriangles.length; j++) {
+						var tempTriangle = this.tempTriangles[j]
+						if (!tempTriangle.CheckIfPointInCircum(point)) {
+							// 如果该点在外接圆外的右侧
+							if (point.x > tempTriangle.circumPoint.x + tempTriangle.circumRadius) {
+								console.log("Find OutSide Of Right")
+								// 则该三角形为Delaunay三角形，保存到triangles
+								tempTriangle.changeColor("white")
+								this.triangles.push(tempTriangle)
+								this.tempTriangles.splice(j, 1)
+								j--
+								continue;
+							} else {
+								console.log("Find OutSide Not Right")
+								// 该点在外接圆外，但不在右侧
+								// 则该三角形为不确定
+								continue;
+							}
+						} else {
+							console.log("Find Inside")
+							// 该点在外接圆内
+							// 三边保存至 edge buffer
+							edgeBuffer.addLine(tempTriangle.point1, tempTriangle.point2)
+							edgeBuffer.addLine(tempTriangle.point2, tempTriangle.point3)
+							edgeBuffer.addLine(tempTriangle.point1, tempTriangle.point3)
+							pig.world.remove(tempTriangle)
+							this.tempTriangles.splice(j, 1)
+							j--
+						}
+					}
+					console.log("Buff L: " + edgeBuffer.lines.length)
+					// 将edge buffer 中的边与当前的点进行组合成若干三角形并保存至 temp Triangles 中
+					for (var z = 0; z < edgeBuffer.lines.length; z++) {
+						var line = edgeBuffer.lines[z]
+						var point1 = new Point(line[0], line[1])
+						var point2 = new Point(line[2], line[3])
+						var point3 = new Point(point.x, point.y)
+						var newTriangle = new Triangle(point1, point2, point3)
+						// newTriangle.color = "green"
+						// newTriangle.Init()
+						pig.world.add(newTriangle)
+						this.tempTriangles.push(newTriangle)
+					}
+				}
+
+				// 创建 “超级大三角”
 				this.FindBigTriangle = function() {
 					var left = this.right_bottom[0]
 					var right = this.left_top[0]
@@ -93,21 +309,39 @@
 					var height = bottom - top
 					var width = right - left
 
-					var superTriangle = new Triangle([right - width / 2, top - width / 2], [left - height, bottom], [right + height, bottom])
+					var point1 = new Point(right - width / 2, top - width / 2)
+					var point2 = new Point(left - height, bottom)
+					var point3 = new Point(right + height, bottom)
+
+					var superTriangle = new Triangle(point1, point2, point3)
 					pig.world.add(superTriangle)
 
-					this.tempTriangles.push(superTriangle)
+					return superTriangle
 				}
+
 			}
 			
 			function main() {
 				pig.init('pig-canvas');
 
 				var delaunayWorld = new DelaunayWorld()
-				delaunayWorld.GeneratePoints()
+				pig.world.add(delaunayWorld)
 
 				pig.run();
 			}
+
+			function cross(point1, point2) {
+				var x1 = point1[0]
+				var y1 = point1[1]
+				var z1 = point1[2]
+
+				var x2 = point2[0]
+				var y2 = point2[1]
+				var z2 = point2[2]
+
+				return [y1 * z2 - y2 * z1, z1 * x2 - z2 * x1, x1 * y2 - x2 * y1]
+			}
+
 		</script>
 	</head>
 	<body onload = "main();">

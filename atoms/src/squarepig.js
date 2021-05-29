@@ -832,12 +832,12 @@ pig.PointGraphic = function(x, y, radius, color) {
 	this.y = y
 
 	this.radius = radius
-	this.dotColor = color
+	this.color = color
 
 	this.draw = function() {
 		pig.context.save();
 		pig.context.beginPath();
-        pig.context.fillStyle = this.dotColor;
+        pig.context.fillStyle = this.color;
         pig.context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
         pig.context.fill();
         pig.context.closePath();
@@ -845,6 +845,29 @@ pig.PointGraphic = function(x, y, radius, color) {
 	};
 
 	this.update = function(dtime){} ;
+}
+
+// 绘制圆圈
+pig.CircumGraphic = function(x, y, radius, color) {
+	pig.Graphic.apply(this);
+
+	this.x = x
+	this.y = y
+
+	this.radius = radius
+	this.color = color
+
+	this.draw = function() {
+		pig.context.save();
+		pig.context.beginPath();
+        pig.context.strokeStyle = this.color;
+        pig.context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+       	pig.context.stroke();
+        pig.context.closePath();
+		pig.context.restore();
+	};
+
+	this.update = function(dtime){};
 }
 
 // 绘制线
@@ -880,6 +903,8 @@ pig.TriangleGraphic = function(point1, point2, point3, width, color) {
 	pig.Graphic.apply(this);
 	this.width = width
 	this.color = color
+
+	this.graphic
 
 	this.draw = function() {
 		pig.context.save();
